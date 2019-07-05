@@ -37,7 +37,7 @@ function test_with_e2e_tests {
 
     cd ${DAPPER_SOURCE}/test/e2e
 
-    go test -v -args -ginkgo.v -ginkgo.randomizeAllSpecs \
+    go test -v -timeout 30m -args -ginkgo.v -ginkgo.randomizeAllSpecs \
         -submariner-namespace $SUBM_NS -dp-context cluster2 -dp-context cluster3 -dp-context cluster1 \
         -ginkgo.noColor -ginkgo.reportPassed \
         -ginkgo.focus "\[${focus}\]" \
