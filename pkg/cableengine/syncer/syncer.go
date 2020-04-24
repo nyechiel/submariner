@@ -39,7 +39,11 @@ func NewGatewaySyncer(engine cableengine.Engine, client v1typed.GatewayInterface
 }
 
 func (s *GatewaySyncer) Run(stopCh <-chan struct{}) {
-	go wait.Until(s.syncGatewayStatus, GatewayUpdateIntervalSeconds*time.Second, stopCh)
+	go func() {
+		wait.Until(s.syncGatewayStatus, GatewayUpdateIntervalSeconds*time.Second, stopCh)
+		s.CleanupOwnEntry()
+	}()
+
 	klog.Info("CableEngine syncer started")
 }
 
@@ -170,4 +174,16 @@ func (i *GatewaySyncer) generateGatewayObject() (*v1.Gateway, error) {
 
 	klog.V(log.TRACE).Infof("generateGatewayObject: %+v", gateway)
 	return &gateway, nil
+}
+
+// CleanupOwnEntry removes this Gateway entry from the k8s API, it does not
+// propagate error up because it's a termination function that we also provide externally
+func (s *GatewaySyncer) CleanupOwnEntry() {
+	hostName := s.engine.GetLocalEndpoint().Spec.Hostname
+	err := s.client.Delete(hostName, &metav1.DeleteOptions{})
+	if errors.IsNotFound(err) {
+		klog.Errorf("Error happened when trying to delete own Gateway entry %q : %s", hostName, err)
+		return
+	}
+	klog.Infof("The Gateway entry for %q has been removed", hostName)
 }
