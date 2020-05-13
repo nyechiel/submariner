@@ -245,7 +245,11 @@ func (w *wireguard) ConnectToEndpoint(remoteEndpoint types.SubmarinerEndpoint) (
 			Table:     routingTable,
 		}
 		if err = netlink.RouteAdd(&route); err != nil {
-			return "", fmt.Errorf("failed to add route %s: %v", route, err)
+			klog.V(log.DEBUG).Infof("adding route %s", route)
+			if !os.IsExist(err) {
+				return "", fmt.Errorf("failed to add route %s: %v", route, err)
+			}
+			klog.V(log.DEBUG).Infof("route already exists")
 		}
 	}
 
