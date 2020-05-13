@@ -262,8 +262,8 @@ func (d *DatastoreSyncer) processNextEndpointWorkItem() bool {
 			return nil
 		}
 
-		if d.localEndpoint.Spec.CableName != endpoint.Spec.CableName {
-			klog.V(log.DEBUG).Infof("The updated submariner Endpoint with CableName %q is not mine - skipping updating the datastore", endpoint.Spec.CableName)
+		if !util.CompareEndpointSpec(d.localEndpoint.Spec, endpoint.Spec) {
+			klog.V(log.DEBUG).Infof("The updated submariner Endpoint %v is not mine - skipping updating the datastore", endpoint.Spec)
 			d.endpointWorkqueue.Forget(key)
 			return nil
 		}
