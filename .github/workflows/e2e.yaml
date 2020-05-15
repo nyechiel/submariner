@@ -19,8 +19,6 @@ jobs:
         deploytool: ['operator', 'helm']
         cable_driver: ['', 'wireguard']
         exclude:
-          - deploytool: 'helm'
-            cable_driver: 'wireguard'
 # TODO: Remove exclusion when issue #552 is fixed
           - globalnet: '--globalnet'
             cable_driver: 'wireguard'
@@ -49,7 +47,8 @@ jobs:
           CLUSTERS_ARGS: ${{ matrix.globalnet }}
           DEPLOY_ARGS: ${{ matrix.globalnet }} --deploytool ${{ matrix.deploytool }}
         run: |
-          [[ -z "${{ matrix.cable_driver }}" ]] || DEPLOY_ARGS+=" --deploytool_submariner_args '--cable-driver ${{ matrix.cable_driver }}'"
+          [[ -z "${{ matrix.cable_driver }}" ]] || [[ ${{ matrix.deploytool }} == "helm" ]] || DEPLOY_ARGS+=" --deploytool_submariner_args '--cable-driver ${{ matrix.cable_driver }}'"
+          [[ -z "${{ matrix.cable_driver }}" ]] || [[ ${{ matrix.deploytool }} == "operator" ]] || DEPLOY_ARGS+=" --deploytool_submariner_args 'cable-driver=${{ matrix.cable_driver }}'"
           make e2e
 
       - name: Post Mortem
